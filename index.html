@@ -591,7 +591,7 @@
 </main>
 
 <div class="bk" id="booking" hidden>
-  <a class="back" href="#invite" id="back-invite">&larr; Back to invitation</a>
+  <a class="back" href="#invite" id="back-invite" hidden>&larr; Back to invitation</a>
 
   <div class="hero-bar"><p>Lindie + Jones || Secrets Moxché Playa del Carmen || July 10, 2027 || CGTIRYANLEANNE</p></div>
 
@@ -1099,8 +1099,8 @@ ${guests[0]}`;
     const q = new URLSearchParams(location.search);
     return location.hash === "#rooms" || q.has("rooms") || q.get("page") === "rooms";
   }
-  show(wantsRooms() ? "rooms" : "invite");
-  window.addEventListener("hashchange", () => show(location.hash === "#rooms" ? "rooms" : "invite"));
+  // Envelope removed: the site always opens on the travel page.
+  show("rooms");
 
   $("booknow").addEventListener("click", e => { e.preventDefault(); $("reserve").scrollIntoView({ behavior: "smooth", block: "start" }); });
   renderGuests(); syncOcc(); update();
