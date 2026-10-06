@@ -843,11 +843,11 @@
       <div class="row">
         <div class="field">
           <label for="arrive">Arrival</label>
-          <input type="date" id="arrive" value="2027-07-08" min="2027-07-01" max="2027-07-20">
+          <input type="date" id="arrive" value="2027-07-08" min="2027-07-01" max="2027-07-09">
         </div>
         <div class="field">
           <label for="depart">Departure</label>
-          <input type="date" id="depart" value="2027-07-13" min="2027-07-02" max="2027-07-21">
+          <input type="date" id="depart" value="2027-07-13" min="2027-07-11" max="2027-07-21">
         </div>
       </div>
 
@@ -978,7 +978,18 @@
     setOcc(+b.dataset.n);
   });
   sel.addEventListener("change", () => { syncOcc(); update(); });
-  $("arrive").addEventListener("change", update);
+  // 3-night minimum: departure dates earlier than arrival + 3 nights are greyed out.
+  function syncDates() {
+    const a = $("arrive").value;
+    if (!a) return;
+    const min = new Date(a + "T12:00:00");
+    min.setDate(min.getDate() + 3);
+    const m = min.toISOString().slice(0, 10);
+    $("depart").min = m;
+    if (!$("depart").value || $("depart").value < m) $("depart").value = m;
+  }
+  $("arrive").addEventListener("change", () => { syncDates(); update(); });
+  $("arrive").addEventListener("input", syncDates);
   $("depart").addEventListener("change", update);
 
   const fmtDate = (v) => new Date(v + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
@@ -1105,7 +1116,7 @@ ${guests[0]}`;
   show("rooms");
 
   $("booknow").addEventListener("click", e => { e.preventDefault(); $("reserve").scrollIntoView({ behavior: "smooth", block: "start" }); });
-  renderGuests(); syncOcc(); update();
+  syncDates(); renderGuests(); syncOcc(); update();
 </script>
 
 </body>
