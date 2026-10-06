@@ -1055,7 +1055,7 @@ ${guests[0]}`;
     window.scrollTo(0, 0);
   }
   document.querySelectorAll("[data-open-rooms]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); show("rooms"); try { history.replaceState(null, "", "#rooms"); } catch (_) {} }));
-  $("back-invite").addEventListener("click", e => { e.preventDefault(); show("invite"); try { history.replaceState(null, "", "#invite"); } catch (_) {} });
+  $("back-invite").addEventListener("click", e => { e.preventDefault(); show("invite"); try { history.replaceState(null, "", location.pathname + "#invite"); } catch (_) {} });
   const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let opened = false, timers = [];
   function showFinal(fromRect) {
@@ -1093,7 +1093,14 @@ ${guests[0]}`;
     at(5450, () => { window.scrollTo(0, 0); showFinal($("envCard").getBoundingClientRect()); });
   });
   $("replay").addEventListener("click", () => { resetEnvelope(); window.scrollTo(0, 0); });
-  show(location.hash === "#rooms" ? "rooms" : "invite");
+  // Open straight to the travel page for links like ?rooms, ?page=rooms or #rooms.
+  // The ?rooms form survives email and text link trackers that drop the # part.
+  function wantsRooms() {
+    const q = new URLSearchParams(location.search);
+    return location.hash === "#rooms" || q.has("rooms") || q.get("page") === "rooms";
+  }
+  show(wantsRooms() ? "rooms" : "invite");
+  window.addEventListener("hashchange", () => show(location.hash === "#rooms" ? "rooms" : "invite"));
 
   $("booknow").addEventListener("click", e => { e.preventDefault(); $("reserve").scrollIntoView({ behavior: "smooth", block: "start" }); });
   renderGuests(); syncOcc(); update();
