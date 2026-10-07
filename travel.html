@@ -2,6 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<script>
+// Always show the newest version: if this copy is out of date, reload the fresh one.
+(function () {
+  var V = "20261007001134";
+  try {
+    fetch(location.pathname + "?check=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (t) {
+        var m = t.match(/var V = "(\d+)"/);
+        if (m && m[1] !== V) {
+          var k = "reloaded-" + m[1];
+          try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) {}
+          location.replace(location.pathname + "?v=" + m[1] + location.hash);
+        }
+      }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta property="og:title" content="You're invited! 💌">
 <meta property="og:description" content="LeAnne Lindie &amp; Ryan Jones · July 10, 2027 · Playa del Carmen, Mexico">
