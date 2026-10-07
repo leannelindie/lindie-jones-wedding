@@ -268,6 +268,22 @@
     font-family: var(--txt); color: var(--ink); max-width: 900px; margin: 0 auto; padding-bottom: 40px;
   }
   .bk .back { margin: 16px 0 12px; display: inline-block; color: #0F2B23; }
+  .datebtn { width: 100%; text-align: left; font: inherit; font-size: 16px; padding: 13px 14px; background: #fff; border: 1px solid #c9c9c9; border-radius: 4px; color: #1F1F1F; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .datebtn::after { content: ""; width: 16px; height: 16px; flex: none; margin-left: 10px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zm-2 8h14v10H5z'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zm-2 8h14v10H5z'/%3E%3C/svg%3E") center/contain no-repeat; }
+  .datebtn:focus-visible { outline: 2px solid #0F2B23; outline-offset: 2px; }
+  .cal-back { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .cal { background: #fff; border-radius: 8px; width: 100%; max-width: 360px; padding: 18px 16px 14px; box-shadow: 0 10px 40px rgba(0,0,0,.3); font-family: var(--txt); }
+  .cal h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #0F2B23; }
+  .cal .cal-sub { margin: 0 0 12px; font-size: 13px; color: #555; }
+  .cal .cal-mo { text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 8px; color: #1F1F1F; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-grid .dow { text-align: center; font-size: 11px; font-weight: 600; color: #777; padding: 4px 0; }
+  .cal-grid button { aspect-ratio: 1; border: 0; border-radius: 50%; background: transparent; font: inherit; font-size: 15px; color: #1F1F1F; cursor: pointer; }
+  .cal-grid button:hover:not(:disabled) { background: #E2E2E2; }
+  .cal-grid button:disabled { color: #C8C8C8; text-decoration: line-through; cursor: not-allowed; }
+  .cal-grid button.sel { background: #0F2B23; color: #fff; }
+  .cal-grid button.arr { box-shadow: inset 0 0 0 1.5px #0F2B23; }
+  .cal-close { margin-top: 12px; width: 100%; padding: 11px; border: 1px solid #0F2B23; background: #fff; color: #0F2B23; font: inherit; font-weight: 600; border-radius: 4px; cursor: pointer; }
   .hero { position: relative; height: clamp(240px, 31vw, 280px); background: #0E2A2B url(hero.jpg) center / cover no-repeat; color: #fff; overflow: hidden; }
   .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.38) 100%); }
   .hero > * { position: absolute; z-index: 1; margin: 0; }
@@ -854,12 +870,12 @@
 
       <div class="row">
         <div class="field">
-          <label for="arrive">Arrival</label>
-          <input type="date" id="arrive" value="2027-07-08" min="2027-07-01" max="2027-07-09">
+          <label>Arrival</label>
+          <input type="hidden" id="arrive" value="2027-07-08" min="2027-07-01" max="2027-07-09"><button type="button" class="datebtn" data-for="arrive" aria-haspopup="dialog"></button>
         </div>
         <div class="field">
-          <label for="depart">Departure</label>
-          <input type="date" id="depart" value="2027-07-13" min="2027-07-11" max="2027-07-21">
+          <label>Departure</label>
+          <input type="hidden" id="depart" value="2027-07-13" min="2027-07-11" max="2027-07-21"><button type="button" class="datebtn" data-for="depart" aria-haspopup="dialog"></button>
         </div>
       </div>
 
@@ -999,6 +1015,7 @@
     const m = min.toISOString().slice(0, 10);
     $("depart").min = m;
     if (!$("depart").value || $("depart").value < m) $("depart").value = m;
+    if (typeof paintDateBtns === "function") paintDateBtns();
   }
   $("arrive").addEventListener("change", () => { syncDates(); update(); });
   $("arrive").addEventListener("input", syncDates);
@@ -1015,9 +1032,9 @@
       if (!f || !l) { err.textContent = `Add a first and last name for guest ${i + 1}.`; err.hidden = false; $(f ? "last" + i : "first" + i).focus(); return; }
       guests.push(f + " " + l);
     }
-    if (nights() <= 0) { err.textContent = "Your departure date needs to be after your arrival date."; err.hidden = false; $("depart").focus(); return; }
-    if (nights() < 3) { err.textContent = "The resort requires a stay of at least 3 nights. Choose a later departure date."; err.hidden = false; $("depart").focus(); return; }
-    if ($("arrive").value > "2027-07-09") { err.textContent = "Please plan to arrive by July 9, 2027, the day before the wedding."; err.hidden = false; $("arrive").focus(); return; }
+    if (nights() <= 0) { err.textContent = "Your departure date needs to be after your arrival date."; err.hidden = false; document.querySelector('.datebtn[data-for="depart"]').focus(); return; }
+    if (nights() < 3) { err.textContent = "The resort requires a stay of at least 3 nights. Choose a later departure date."; err.hidden = false; document.querySelector('.datebtn[data-for="depart"]').focus(); return; }
+    if ($("arrive").value > "2027-07-09") { err.textContent = "Please plan to arrive by July 9, 2027, the day before the wedding."; err.hidden = false; document.querySelector('.datebtn[data-for="arrive"]').focus(); return; }
     err.hidden = true;
 
     const r = room();
@@ -1128,7 +1145,52 @@ ${guests[0]}`;
   show("rooms");
 
   $("booknow").addEventListener("click", e => { e.preventDefault(); $("reserve").scrollIntoView({ behavior: "smooth", block: "start" }); });
-  syncDates(); renderGuests(); syncOcc(); update();
+  // Custom calendar so dates outside the allowed range can't be picked on any phone.
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DOWS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const toD = s => new Date(s + "T12:00:00");
+  const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const nice = s => s ? toD(s).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "Select a date";
+  function paintDateBtns() { document.querySelectorAll(".datebtn").forEach(b => { b.textContent = nice($(b.dataset.for).value); }); }
+  function openCal(id) {
+    const inp = $(id), min = inp.min, max = inp.max;
+    const first = toD(min);
+    const back = document.createElement("div"); back.className = "cal-back";
+    const cal = document.createElement("div"); cal.className = "cal"; cal.setAttribute("role", "dialog"); cal.setAttribute("aria-modal", "true");
+    const isDep = id === "depart";
+    cal.innerHTML = `<h3>${isDep ? "Departure date" : "Arrival date"}</h3><p class="cal-sub">${isDep ? "3-night minimum stay. Earlier dates are unavailable." : "Please arrive by July 9, 2027."}</p>`;
+    const months = [];
+    for (let d = new Date(first.getFullYear(), first.getMonth(), 1); iso(d) <= max; d.setMonth(d.getMonth() + 1)) months.push(new Date(d));
+    months.forEach(m => {
+      const mo = document.createElement("div"); mo.className = "cal-mo"; mo.textContent = MONTHS[m.getMonth()] + " " + m.getFullYear(); cal.appendChild(mo);
+      const g = document.createElement("div"); g.className = "cal-grid";
+      DOWS.forEach(w => { const s = document.createElement("span"); s.className = "dow"; s.textContent = w; g.appendChild(s); });
+      for (let i = 0; i < m.getDay(); i++) g.appendChild(document.createElement("span"));
+      const dim = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+      for (let day = 1; day <= dim; day++) {
+        const v = iso(new Date(m.getFullYear(), m.getMonth(), day, 12));
+        const b = document.createElement("button"); b.type = "button"; b.textContent = day;
+        b.disabled = v < min || v > max;
+        if (b.disabled) b.setAttribute("aria-label", nice(v) + ", unavailable"); else b.setAttribute("aria-label", nice(v));
+        if (v === inp.value) b.classList.add("sel");
+        if (isDep && v === $("arrive").value) b.classList.add("arr");
+        b.addEventListener("click", () => { if (b.disabled) return; inp.value = v; inp.dispatchEvent(new Event("change")); paintDateBtns(); close(); });
+        g.appendChild(b);
+      }
+      cal.appendChild(g);
+    });
+    const c = document.createElement("button"); c.type = "button"; c.className = "cal-close"; c.textContent = "Close"; c.addEventListener("click", () => close());
+    cal.appendChild(c);
+    back.appendChild(cal); document.body.appendChild(back);
+    const opener = document.querySelector(`.datebtn[data-for="${id}"]`);
+    function close() { back.remove(); document.removeEventListener("keydown", esc); opener.focus(); }
+    function esc(e) { if (e.key === "Escape") close(); }
+    back.addEventListener("click", e => { if (e.target === back) close(); });
+    document.addEventListener("keydown", esc);
+    (cal.querySelector(".cal-grid button.sel") || cal.querySelector(".cal-grid button:not(:disabled)")).focus();
+  }
+  document.querySelectorAll(".datebtn").forEach(b => b.addEventListener("click", () => openCal(b.dataset.for)));
+  syncDates(); paintDateBtns(); renderGuests(); syncOcc(); update();
 </script>
 
 </body>
